@@ -1,316 +1,359 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Software Engineer Portfolio</title>
-<script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
-    <style>
-        body {
-            background-color: #0a0a0a;
-            color: #e5e7eb;
-        }
-        .section-divider {
-            position: relative;
-            height: 200px;
-            background: linear-gradient(to right, #1e40af, #1e3a8a);
-            clip-path: polygon(0 0, 100% 0, 100% 70%, 0 100%);
-            margin-bottom: -100px;
-            z-index: 10;
-        }
-.section-divider.reverse {
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 70%);
-            margin-top: -100px;
-            margin-bottom: 0;
-        }
-        .vanta-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.2;
-        }
-        .card-hover {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-        .skill-bar {
-            height: 8px;
-            border-radius: 4px;
-            background: linear-gradient(to right, #4f46e5, #7c3aed);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Markus Kaas — BSc Software Engineering student at SDU Odense. iOS, Android, .NET, Umbraco, AI integrations." />
+  <title>Markus Kaas — Software Engineer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --bg2:       #161b22;
+      --bg3:       #21262d;
+      --border:    rgba(255,255,255,.07);
+      --txt:       #c9d1d9;
+      --muted:     #8b949e;
+      --accent:    #7c3aed;
+      --accent-lt: #a855f7;
+      --sans: 'Inter', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--txt);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      padding: 48px 32px;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+    }
+
+    .name  { font-size: 1.25rem; font-weight: 700; color: #e6edf3; letter-spacing: -.02em; margin-bottom: 4px; }
+    .title { font-family: var(--mono); font-size: .7rem; color: var(--accent-lt); letter-spacing: .05em; margin-bottom: 24px; }
+    .tagline { font-size: .82rem; color: var(--muted); line-height: 1.65; margin-bottom: 40px; }
+
+    nav { display: flex; flex-direction: column; gap: 6px; }
+    .nav-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 7px;
+      font-size: .82rem; color: var(--muted);
+      transition: color .2s, background .2s;
+    }
+    .nav-link .nav-num { font-family: var(--mono); font-size: .65rem; color: var(--accent); width: 18px; }
+    .nav-link:hover, .nav-link.active { color: #e6edf3; background: var(--bg2); }
+    .nav-link.active .nav-num { color: var(--accent-lt); }
+
+    .socials { margin-top: auto; display: flex; gap: 14px; }
+    .socials a { color: var(--muted); transition: color .2s; display: flex; }
+    .socials a:hover { color: var(--accent-lt); }
+    .socials svg { width: 18px; height: 18px; fill: currentColor; }
+
+    /* ── Main ── */
+    main { margin-left: 280px; flex: 1; padding: 80px 80px 120px; max-width: 900px; }
+    section { margin-bottom: 120px; }
+    .section-label { font-family: var(--mono); font-size: .65rem; color: var(--accent); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 32px; }
+
+    /* ── About ── */
+    .about-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px 32px; margin-bottom: 32px;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .avatar {
+      width: 60px; height: 60px; border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(124,58,237,.4);
+      flex-shrink: 0;
+    }
+    .avatar-placeholder {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-lt));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; flex-shrink: 0;
+    }
+    .avatar-info .avatar-name { font-weight: 600; color: #e6edf3; font-size: .95rem; }
+    .avatar-info .avatar-sub  { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+
+    .about-text { font-size: .9rem; color: var(--muted); line-height: 1.8; margin-bottom: 20px; }
+    .about-text a { color: var(--accent-lt); }
+    .about-text a:hover { text-decoration: underline; }
+
+    .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; }
+    .skill-group { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+    .skill-group-label { font-family: var(--mono); font-size: .62rem; color: var(--accent); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { font-family: var(--mono); font-size: .68rem; padding: 3px 9px; border-radius: 4px; background: var(--bg3); color: var(--txt); border: 1px solid var(--border); }
+
+    /* ── Projects ── */
+    .projects-list { display: flex; flex-direction: column; gap: 24px; }
+    .project-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px 32px;
+      display: grid; grid-template-columns: auto 1fr; gap: 24px;
+      transition: border-color .2s, box-shadow .2s;
+      opacity: 0; transform: translateY(24px);
+    }
+    .project-card.visible { opacity: 1; transform: translateY(0); transition: opacity .5s ease, transform .5s ease, border-color .2s, box-shadow .2s; }
+    .project-card:hover { border-color: rgba(124,58,237,.3); box-shadow: 0 0 0 1px rgba(124,58,237,.1); }
+
+    .app-icon {
+      width: 52px; height: 52px; border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; flex-shrink: 0;
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+    }
+    .project-card:hover .app-icon { transform: scale(1.08) rotate(-3deg); }
+    .app-icon-uptime { background: linear-gradient(135deg, #0f172a, #1e3a5f); }
+    .app-icon-score  { background: linear-gradient(135deg, #1a1a2e, #16213e); }
+    .app-icon-limbo  { background: linear-gradient(135deg, #1e293b, #334155); }
+    .app-icon-vejle  { background: linear-gradient(135deg, #1a0533, #3b0764); }
+
+    .project-meta { display: flex; flex-direction: column; }
+    .project-name { font-size: 1rem; font-weight: 600; color: #e6edf3; margin-bottom: 6px; }
+    .project-desc { font-size: .84rem; color: var(--muted); line-height: 1.7; margin-bottom: 14px; }
+    .project-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .project-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .project-link { font-family: var(--mono); font-size: .7rem; color: var(--accent-lt); display: flex; align-items: center; gap: 4px; transition: gap .2s; white-space: nowrap; }
+    .project-link:hover { gap: 7px; }
+
+    /* ── Contact ── */
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+    .contact-item {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px 24px;
+      display: flex; align-items: center; gap: 14px;
+      transition: border-color .2s;
+    }
+    .contact-item:hover { border-color: rgba(124,58,237,.3); }
+    .contact-icon { width: 36px; height: 36px; background: var(--bg3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .contact-label { font-size: .7rem; color: var(--muted); margin-bottom: 2px; }
+    .contact-value { font-size: .85rem; color: #e6edf3; }
+
+    .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .cta {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent); color: #fff;
+      padding: 12px 24px; border-radius: 8px;
+      font-size: .85rem; font-weight: 500;
+      transition: background .2s, transform .15s;
+    }
+    .cta:hover { background: var(--accent-lt); transform: translateY(-1px); }
+    .cta.outline { background: transparent; border: 1px solid rgba(124,58,237,.4); color: var(--accent-lt); }
+    .cta.outline:hover { background: rgba(124,58,237,.08); }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      main { margin-left: 0; padding: 40px 24px 80px; }
+      .skills-grid, .contact-grid { grid-template-columns: 1fr; }
+      .project-card { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
-<body class="font-mono bg-gray-900 text-gray-100">
-<!-- Vanta.js Background -->
-    <div id="vanta-bg" class="vanta-bg"></div>
+<body>
 
-    <!-- Main Container -->
-    <div class="container mx-auto px-4 md:px-8 lg:px-12 max-w-6xl relative z-10">
-        <!-- Navigation -->
-        <nav class="py-6 flex justify-between items-center sticky top-0 bg-white bg-opacity-90 backdrop-blur-sm z-50">
-            <a href="#" class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-                &lt;DevPortfolio/&gt;
-            </a>
-<div class="hidden md:flex space-x-8">
-                <a href="#home" class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Home</a>
-                <a href="#skills" class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Skills</a>
-                <a href="#projects" class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Projects</a>
-                <a href="#contact" class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Contact</a>
-            </div>
-            <button class="md:hidden">
-                <i data-feather="menu"></i>
-            </button>
-        </nav>
+<aside class="sidebar">
+  <div class="name">Markus Kaas</div>
+  <div class="title">// Software Engineer</div>
+  <p class="tagline">BSc student at SDU Odense building native apps, backend systems, and AI integrations.</p>
+  <nav>
+    <a href="#about"    class="nav-link active"><span class="nav-num">01</span> About</a>
+    <a href="#projects" class="nav-link"><span class="nav-num">02</span> Projects</a>
+    <a href="#contact"  class="nav-link"><span class="nav-num">03</span> Contact</a>
+  </nav>
+  <div class="socials">
+    <a href="https://github.com/MarkusKaas" target="_blank" aria-label="GitHub">
+      <svg viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+    </a>
+    <a href="https://linkedin.com/in/markuskaas" target="_blank" aria-label="LinkedIn">
+      <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+    </a>
+    <a href="mailto:markuskaas28@gmail.com" aria-label="Email">
+      <svg viewBox="0 0 24 24"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.909 1.528-1.147C21.69 2.28 24 3.434 24 5.457z"/></svg>
+    </a>
+  </div>
+</aside>
 
-        <!-- Hero Section -->
-        <section id="home" class="py-20 md:py-32 flex flex-col md:flex-row items-center">
-            <div class="md:w-1/2 mb-10 md:mb-0">
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Hi, I'm <span class="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">Markus Kaas</span></h1>
-                <h2 class="text-2xl md:text-3xl text-gray-400 mb-6">Software Engineering Student</h2>
-                <p class="text-gray-400 mb-8 max-w-lg">
-                    Passionate about solving complex problems through code. Currently mastering my 5th semester including: algorithms & data structures, and full-stack development while pursuing my degree.
-                </p>
-                <div class="flex space-x-4">
-                    <a href="#projects" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">View Projects</a>
-                    <a href="#" class="px-6 py-3 border border-blue-600 text-blue-400 rounded-lg hover:bg-blue-900 transition flex items-center">
-                        <i data-feather="download" class="mr-2"></i> Download CV
-                    </a>
-                </div>
-</div>
-            <div class="md:w-1/2 flex justify-center">
-                <div class="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-indigo-100 shadow-lg">
-                <div class="relative">
-                    <div class="absolute inset-0 bg-blue-600 rounded-full opacity-20 blur-xl"></div>
-                    <div class="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-blue-500 shadow-lg relative">
-                        <img src="http://static.photos/technology/640x360/1" alt="Profile" class="w-full h-full object-cover">
-                    </div>
-                    <div class="absolute -bottom-5 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-blue-900 text-blue-100 rounded-full text-sm">
-                        <i data-feather="code" class="inline mr-1"></i> Coding Now
-                    </div>
-                </div>
-</div>
-            </div>
-        </section>
+<main>
 
-        <!-- Divider -->
-        <div class="section-divider"></div>
-
-        <!-- Skills Section -->
-        <section id="skills" class="py-20 bg-gray-800 rounded-lg shadow-lg">
-<div class="text-center mb-16">
-                <h2 class="text-3xl font-bold mb-4">My Skills</h2>
-                <p class="text-gray-600 max-w-2xl mx-auto">I've worked with a variety of technologies in the web development world.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Skill 1 -->
-                <div class="bg-gray-700 p-6 rounded-lg card-hover border border-gray-600">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 rounded-full bg-blue-900 bg-opacity-50 flex items-center justify-center mr-4 border border-blue-500">
-                            <i data-feather="code" class="text-blue-400"></i>
-</div>
-                        <h3 class="text-xl font-semibold">Frontend Development</h3>
-                    </div>
-                    <p class="text-gray-600 mb-4">Building responsive, interactive user interfaces with modern frameworks.</p>
-                    <div class="mb-2 flex justify-between">
-                        <span>HTML/CSS</span>
-                        <span>95%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        <div class="skill-bar h-2.5 rounded-full" style="width: 95%"></div>
-                    </div>
-                </div>
-
-                <!-- Skill 2 -->
-                <div class="bg-gray-50 p-6 rounded-lg card-hover">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center mr-4">
-                            <i data-feather="smartphone" class="text-indigo-600"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold">UI/UX Design</h3>
-                    </div>
-                    <p class="text-gray-600 mb-4">Creating intuitive and visually appealing user experiences.</p>
-                    <div class="mb-2 flex justify-between">
-                        <span>Figma</span>
-                        <span>90%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        <div class="skill-bar h-2.5 rounded-full" style="width: 90%"></div>
-                    </div>
-                </div>
-
-                <!-- Skill 3 -->
-                <div class="bg-gray-50 p-6 rounded-lg card-hover">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center mr-4">
-                            <i data-feather="database" class="text-indigo-600"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold">Backend Basics</h3>
-                    </div>
-                    <p class="text-gray-600 mb-4">Working with APIs, databases, and server-side logic.</p>
-                    <div class="mb-2 flex justify-between">
-                        <span>Node.js</span>
-                        <span>80%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        <div class="skill-bar h-2.5 rounded-full" style="width: 80%"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Divider (reversed) -->
-        <div class="section-divider reverse"></div>
-
-        <!-- Projects Section -->
-        <section id="projects" class="py-20 bg-gradient-to-b from-gray-900 to-gray-800">
-<div class="text-center mb-16">
-                <h2 class="text-3xl font-bold mb-4">Featured Projects</h2>
-                <p class="text-gray-600 max-w-2xl mx-auto">Here are some of my recent works that I'm proud of.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Project 1 -->
-                <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg card-hover border border-gray-700">
-<img src="http://static.photos/technology/640x360/2" alt="Project 1" class="w-full h-48 object-cover">
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">E-Commerce Platform</h3>
-                        <p class="text-gray-600 mb-4">A full-featured online store with cart functionality and payment integration.</p>
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">React</span>
-                            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">Node.js</span>
-                            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">MongoDB</span>
-                        </div>
-                        <a href="#" class="text-indigo-600 hover:text-indigo-800 font-medium">View Project →</a>
-                    </div>
-                </div>
-
-                <!-- Project 2 -->
-                <div class="bg-white rounded-lg overflow-hidden shadow-md card-hover">
-                    <img src="http://static.photos/technology/640x360/3" alt="Project 2" class="w-full h-48 object-cover">
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">Portfolio Website</h3>
-                        <p class="text-gray-600 mb-4">A sleek, responsive portfolio for a photographer with image gallery.</p>
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">HTML/CSS</span>
-                            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">JavaScript</span>
-                            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">GSAP</span>
-                        </div>
-                        <a href="#" class="text-indigo-600 hover:text-indigo-800 font-medium">View Project →</a>
-                    </div>
-                </div>
-            </div>
-            <div class="text-center mt-12">
-                <a href="#" class="px-6 py-3 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition">View All Projects</a>
-            </div>
-        </section>
-
-        <!-- Divider -->
-        <div class="section-divider"></div>
-
-        <!-- Contact Section -->
-        <section id="contact" class="py-20 bg-gray-800 rounded-lg shadow-lg">
-<div class="text-center mb-16">
-                <h2 class="text-3xl font-bold mb-4">Get In Touch</h2>
-                <p class="text-gray-600 max-w-2xl mx-auto">Have a project in mind or want to chat? Feel free to reach out!</p>
-            </div>
-            <div class="max-w-2xl mx-auto">
-                <form class="space-y-6">
-                    <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                        <input type="text" id="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                        <textarea id="message" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
-                    </div>
-                    <button type="submit" class="w-full px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Send Message</button>
-                </form>
-                <div class="mt-12 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
-                            <i data-feather="mail" class="text-indigo-600"></i>
-                        </div>
-                        <a href="mailto:hello@example.com" class="px-6 py-3 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition">Markuskaas28@gmail.com</a>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
-                            <i data-feather="phone" class="text-indigo-600"></i>
-                        </div>
-                        <a href="tel:+1234567890" class="px-6 py-3 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition">+45 29443436</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Footer -->
-        <footer class="py-12 text-center">
-            <div class="flex justify-center space-x-6 mb-6">
-                <a href="#" class="text-gray-500 hover:text-indigo-600">
-                    <i data-feather="github"></i>
-                </a>
-                <a href="#" class="text-gray-500 hover:text-indigo-600">
-                    <i data-feather="linkedin"></i>
-                </a>
-                <a href="#" class="text-gray-500 hover:text-indigo-600">
-                    <i data-feather="twitter"></i>
-                </a>
-                <a href="#" class="text-gray-500 hover:text-indigo-600">
-                    <i data-feather="instagram"></i>
-                </a>
-            </div>
-            <p class="text-gray-500">&copy; 2023 Software Engineer Portfolio. All rights reserved.</p>
-</footer>
+  <section id="about">
+    <div class="section-label">01 // About</div>
+    <div class="about-card">
+      <img src="photo.jpg" alt="Markus Kaas" class="avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+      <div class="avatar-placeholder" style="display:none">👨‍💻</div>
+      <div class="avatar-info">
+        <div class="avatar-name">Markus Kaas</div>
+        <div class="avatar-sub"><a href="https://www.sdu.dk/en" target="_blank">SDU Odense</a> — BSc Software Engineering · Intern @ Limbo</div>
+      </div>
     </div>
 
-    <script>
-        // Initialize Vanta.js
-        VANTA.NET({
-            el: "#vanta-bg",
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200.00,
-            minWidth: 200.00,
-            scale: 1.00,
-            scaleMobile: 1.00,
-            color: 0x3b82f6,
-            backgroundColor: 0x111827,
-            points: 12.00,
-            maxDistance: 22.00,
-            spacing: 18.00
-        });
-// Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                
-                const targetId = this.getAttribute('href');
-                if (targetId === '#') return;
-                
-                const targetElement = document.querySelector(targetId);
-                if (targetElement) {
-                    window.scrollTo({
-                        top: targetElement.offsetTop - 100,
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
+    <p class="about-text">
+      I'm a software engineering student at <a href="https://www.sdu.dk/en" target="_blank">SDU Odense</a> with a focus on native app development and AI integrations. During my internship at <strong style="color:#e6edf3">Limbo</strong> I've been building production features on Umbraco CMS — including a Mailchimp API integration and AI-powered content tools using Claude.
+    </p>
+    <p class="about-text">
+      I enjoy working across the full stack: from Swift and SwiftUI on iOS to .NET backends and AI pipelines. Currently researching AI integration patterns in content management systems as part of my thesis.
+    </p>
 
-        // Initialize feather icons
-        feather.replace();
-    </script>
+    <div class="skills-grid">
+      <div class="skill-group">
+        <div class="skill-group-label">Native & Mobile</div>
+        <div class="skill-tags">
+          <span class="tag">Swift</span><span class="tag">SwiftUI</span><span class="tag">AppKit</span>
+          <span class="tag">iOS / Xcode</span><span class="tag">Android Studio</span>
+          <span class="tag">MultipeerConnectivity</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-label">Backend</div>
+        <div class="skill-tags">
+          <span class="tag">C# / .NET</span><span class="tag">Umbraco</span>
+          <span class="tag">Java</span><span class="tag">Spring Boot</span>
+          <span class="tag">ASP.NET Core</span><span class="tag">FastAPI</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-label">Frontend</div>
+        <div class="skill-tags">
+          <span class="tag">TypeScript</span><span class="tag">JavaScript</span>
+          <span class="tag">Tailwind</span><span class="tag">Web Components</span><span class="tag">Lit</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-label">Tooling & AI</div>
+        <div class="skill-tags">
+          <span class="tag">Claude Code</span><span class="tag">Claude API</span>
+          <span class="tag">Gemini API</span><span class="tag">Git</span>
+          <span class="tag">GitHub Actions</span><span class="tag">VS Code</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="projects">
+    <div class="section-label">02 // Projects</div>
+    <div class="projects-list">
+
+      <div class="project-card">
+        <div class="app-icon app-icon-uptime">📡</div>
+        <div class="project-meta">
+          <div class="project-name">Uptime</div>
+          <div class="project-desc">macOS menu-bar app for monitoring website uptime. Runs silent background checks, shows live status in the menu bar, and sends native notifications on downtime. Built entirely with SwiftUI and AppKit.</div>
+          <div class="project-footer">
+            <div class="project-tags"><span class="tag">Swift</span><span class="tag">SwiftUI</span><span class="tag">AppKit</span><span class="tag">macOS</span></div>
+            <a href="https://github.com/MarkusKaas" class="project-link" target="_blank">View on GitHub →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="app-icon app-icon-score">🏆</div>
+        <div class="project-meta">
+          <div class="project-name">ScoreBar</div>
+          <div class="project-desc">Live sports scores in your macOS menu bar. Fetches real-time match data and surfaces it without opening a browser. Lightweight and always-on-top, built with SwiftUI.</div>
+          <div class="project-footer">
+            <div class="project-tags"><span class="tag">Swift</span><span class="tag">SwiftUI</span><span class="tag">REST API</span><span class="tag">macOS</span></div>
+            <a href="https://github.com/MarkusKaas" class="project-link" target="_blank">View on GitHub →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="app-icon app-icon-limbo">🏢</div>
+        <div class="project-meta">
+          <div class="project-name">Limbo Internship — Umbraco AI & Integrations</div>
+          <div class="project-desc">Built production features for client Umbraco CMS sites at Limbo: a Mailchimp API integration syncing newsletter subscribers via Notification Handlers, and AI-powered content tools using Claude API for automated meta description generation and editorial assistance.</div>
+          <div class="project-footer">
+            <div class="project-tags"><span class="tag">C# / .NET</span><span class="tag">Umbraco</span><span class="tag">Claude API</span><span class="tag">Mailchimp API</span></div>
+            <a href="https://limbo.works" class="project-link" target="_blank">limbo.works →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="app-icon app-icon-vejle">🔍</div>
+        <div class="project-meta">
+          <div class="project-name">CMS RAG Q&A — Thesis Research</div>
+          <div class="project-desc">A Retrieval-Augmented Generation system built as a proof-of-concept for my thesis on AI-in-CMS patterns. Upload any document, ask questions in natural language, and get grounded answers with source citations — powered by Claude and a TF-IDF retrieval pipeline.</div>
+          <div class="project-footer">
+            <div class="project-tags"><span class="tag">Python</span><span class="tag">FastAPI</span><span class="tag">Claude API</span><span class="tag">RAG</span><span class="tag">scikit-learn</span></div>
+            <a href="https://github.com/MarkusKaas" class="project-link" target="_blank">View on GitHub →</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="section-label">03 // Contact</div>
+    <p class="about-text" style="margin-bottom:28px;">Open to internship extensions, graduate roles, and interesting projects. Feel free to reach out.</p>
+
+    <div class="contact-grid">
+      <a href="mailto:markuskaas28@gmail.com" class="contact-item">
+        <div class="contact-icon">✉️</div>
+        <div><div class="contact-label">Email</div><div class="contact-value">markuskaas28@gmail.com</div></div>
+      </a>
+      <a href="https://linkedin.com/in/markuskaas" target="_blank" class="contact-item">
+        <div class="contact-icon">💼</div>
+        <div><div class="contact-label">LinkedIn</div><div class="contact-value">linkedin.com/in/markuskaas</div></div>
+      </a>
+      <a href="https://github.com/MarkusKaas" target="_blank" class="contact-item">
+        <div class="contact-icon">🐙</div>
+        <div><div class="contact-label">GitHub</div><div class="contact-value">github.com/MarkusKaas</div></div>
+      </a>
+      <div class="contact-item">
+        <div class="contact-icon">📍</div>
+        <div><div class="contact-label">Location</div><div class="contact-value">Odense, Denmark</div></div>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <a href="mailto:markuskaas28@gmail.com" class="cta">Say hello →</a>
+      <a href="cv.pdf" class="cta outline" download>Download CV ↓</a>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks  = document.querySelectorAll('.nav-link');
+  const observer  = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  const cards = document.querySelectorAll('.project-card');
+  const cardObs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: .1 });
+  cards.forEach(c => cardObs.observe(c));
+</script>
 </body>
 </html>
