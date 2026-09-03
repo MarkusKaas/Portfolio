@@ -163,6 +163,39 @@
     .cta.outline { background: transparent; border: 1px solid rgba(124,58,237,.4); color: var(--accent-lt); }
     .cta.outline:hover { background: rgba(124,58,237,.08); }
 
+
+    /* ── Floating symbols ── */
+    .floats {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .float-sym {
+      position: absolute;
+      font-family: var(--mono);
+      font-size: .75rem;
+      color: rgba(124,58,237,.18);
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    /* ── Sidebar intro animation ── */
+    .sidebar .name,
+    .sidebar .title,
+    .sidebar .tagline,
+    .sidebar nav,
+    .sidebar .socials { opacity: 0; }
+
+    /* ── Section fade ── */
+    .section-label { opacity: 0; transform: translateX(-12px); }
+    .about-card    { opacity: 0; transform: translateY(16px); }
+    .about-text    { opacity: 0; transform: translateY(12px); }
+    .skills-grid   { opacity: 0; transform: translateY(12px); }
+    .contact-grid  { opacity: 0; transform: translateY(12px); }
+    .cta-row       { opacity: 0; transform: translateY(12px); }
+
     @media (max-width: 900px) {
       .sidebar { display: none; }
       main { margin-left: 0; padding: 40px 24px 80px; }
@@ -336,10 +369,137 @@
 
 </main>
 
+
+<!-- Floating code symbols -->
+<div class="floats" id="floats"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 <script>
+  // ── Floating background symbols ──────────────────────────────────────
+  const syms = ['const','await','</>','{ }','fn()','[]','=>','async','AI','git','npm','dx','API','.map','null','true'];
+  const floats = document.getElementById('floats');
+  const symEls = [];
+  syms.forEach((s, i) => {
+    const el = document.createElement('div');
+    el.className = 'float-sym';
+    el.textContent = s;
+    // base position stored as data
+    const bx = 8 + Math.random() * 84;
+    const by = 5 + Math.random() * 90;
+    el.style.left = bx + '%';
+    el.style.top  = by + '%';
+    el._bx = bx; el._by = by;
+    el._tx = 0;  el._ty = 0;
+    floats.appendChild(el);
+    symEls.push(el);
+
+    // idle drift
+    anime({
+      targets: el,
+      translateY: [anime.random(-25, -50), anime.random(25, 50)],
+      translateX: [anime.random(-15, 15), anime.random(-15, 15)],
+      opacity:    [0.06, 0.22, 0.06],
+      duration:   anime.random(6000, 14000),
+      delay:      anime.random(0, 4000),
+      direction:  'alternate',
+      loop:       true,
+      easing:     'easeInOutSine',
+    });
+  });
+
+  // Mouse repel
+  let mx = -9999, my = -9999;
+  window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  window.addEventListener('mouseleave', () => { mx = -9999; my = -9999; });
+
+  const REPEL_RADIUS = 160;
+  const REPEL_STRENGTH = 120;
+
+  setInterval(() => {
+    symEls.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top  + rect.height / 2;
+      const dx = cx - mx;
+      const dy = cy - my;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+
+      if (dist < REPEL_RADIUS && dist > 0) {
+        const force = (1 - dist / REPEL_RADIUS) * REPEL_STRENGTH;
+        el._tx += (dx / dist) * force;
+        el._ty += (dy / dist) * force;
+      }
+      // spring back
+      el._tx *= 0.88;
+      el._ty *= 0.88;
+
+      el.style.transform = `translate(${el._tx.toFixed(1)}px, ${el._ty.toFixed(1)}px)`;
+    });
+  }, 16);
+
+  // ── Sidebar entrance ─────────────────────────────────────────────────
+  anime.timeline({ easing: 'easeOutExpo' })
+    .add({ targets: '.sidebar .name',    opacity: [0,1], translateY: [20,0], duration: 700 })
+    .add({ targets: '.sidebar .title',   opacity: [0,1], translateY: [12,0], duration: 500 }, '-=400')
+    .add({ targets: '.sidebar .tagline', opacity: [0,1], translateY: [12,0], duration: 500 }, '-=300')
+    .add({ targets: '.sidebar nav .nav-link', opacity: [0,1], translateX: [-16,0], duration: 400, delay: anime.stagger(80) }, '-=200')
+    .add({ targets: '.sidebar .socials', opacity: [0,1], translateY: [10,0], duration: 400 }, '-=100');
+
+  // ── Scroll-reveal for content blocks ─────────────────────────────────
+  function revealOnScroll(selector, props = {}) {
+    const els = document.querySelectorAll(selector);
+    if (!els.length) return;
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        anime({ targets: e.target, opacity: [0,1], translateY: [props.y ?? 16, 0], translateX: [props.x ?? 0, 0], duration: 600, easing: 'easeOutExpo', delay: props.delay ?? 0 });
+        obs.unobserve(e.target);
+      });
+    }, { threshold: .1 });
+    els.forEach(el => obs.observe(el));
+  }
+
+  revealOnScroll('.section-label', { y: 0, x: -12 });
+  revealOnScroll('.about-card');
+  document.querySelectorAll('.about-text').forEach((el, i) => {
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        anime({ targets: e.target, opacity: [0,1], translateY: [12,0], duration: 500, easing: 'easeOutExpo', delay: i * 80 });
+        obs.unobserve(e.target);
+      });
+    }, { threshold: .1 });
+    obs.observe(el);
+  });
+  revealOnScroll('.skills-grid', { y: 16 });
+  revealOnScroll('.contact-grid', { y: 16 });
+  revealOnScroll('.cta-row', { y: 12 });
+
+  // ── Skill tags stagger ────────────────────────────────────────────────
+  const skillObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      anime({ targets: e.target.querySelectorAll('.tag'), opacity: [0,1], translateY: [8,0], duration: 350, delay: anime.stagger(40), easing: 'easeOutExpo' });
+      skillObs.unobserve(e.target);
+    });
+  }, { threshold: .2 });
+  document.querySelectorAll('.skill-group').forEach(g => skillObs.observe(g));
+
+  // ── Project cards (keep existing visible class + add anime) ──────────
+  const cardObs2 = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (!e.isIntersecting) return;
+      anime({ targets: e.target, opacity: [0,1], translateY: [28,0], duration: 600, easing: 'easeOutExpo' });
+      e.target.classList.add('visible');
+      cardObs2.unobserve(e.target);
+    });
+  }, { threshold: .08 });
+  document.querySelectorAll('.project-card').forEach(c => cardObs2.observe(c));
+
+  // ── Scroll-spy (existing) ─────────────────────────────────────────────
   const sections = document.querySelectorAll('section[id]');
   const navLinks  = document.querySelectorAll('.nav-link');
-  const observer  = new IntersectionObserver(entries => {
+  const spyObs   = new IntersectionObserver(entries => {
     entries.forEach(e => {
       if (e.isIntersecting) {
         navLinks.forEach(l => l.classList.remove('active'));
@@ -348,13 +508,8 @@
       }
     });
   }, { rootMargin: '-40% 0px -55% 0px' });
-  sections.forEach(s => observer.observe(s));
-
-  const cards = document.querySelectorAll('.project-card');
-  const cardObs = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold: .1 });
-  cards.forEach(c => cardObs.observe(c));
+  sections.forEach(s => spyObs.observe(s));
 </script>
+
 </body>
 </html>
