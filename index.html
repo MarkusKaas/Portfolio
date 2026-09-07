@@ -181,12 +181,42 @@
       white-space: nowrap;
     }
 
+    /* ── Scroll progress bar ── */
+    #progress-bar {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 2px; z-index: 999;
+      background: linear-gradient(90deg, var(--accent), var(--accent-lt));
+      transform-origin: left center;
+      transform: scaleX(0);
+      transition: transform 0.1s linear;
+    }
+
+    /* ── Cursor glow ── */
+    #cursor-glow {
+      position: fixed; pointer-events: none; z-index: 998;
+      width: 320px; height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,58,237,.07) 0%, transparent 70%);
+      transform: translate(-50%, -50%);
+      transition: opacity .4s;
+      opacity: 0;
+    }
+
     /* ── Sidebar intro animation ── */
-    .sidebar .name,
-    .sidebar .title,
-    .sidebar .tagline,
-    .sidebar nav,
-    .sidebar .socials { opacity: 0; }
+    .sidebar .name    { opacity: 0; transform: translateY(20px); }
+    .sidebar .title   { opacity: 0; transform: translateY(12px); }
+    .sidebar .tagline { opacity: 0; transform: translateY(12px); }
+    .sidebar nav      { opacity: 0; transform: translateX(-16px); }
+    .sidebar .socials { opacity: 0; transform: translateY(10px); }
+
+    .sidebar.anim-done .name,
+    .sidebar.anim-done .title,
+    .sidebar.anim-done .tagline,
+    .sidebar.anim-done nav,
+    .sidebar.anim-done .socials {
+      transition: opacity .6s var(--ease), transform .6s var(--ease);
+      opacity: 1; transform: none;
+    }
 
     /* ── Section fade ── */
     .section-label { opacity: 0; transform: translateX(-12px); }
@@ -195,6 +225,14 @@
     .skills-grid   { opacity: 0; transform: translateY(12px); }
     .contact-grid  { opacity: 0; transform: translateY(12px); }
     .cta-row       { opacity: 0; transform: translateY(12px); }
+
+    /* ── 3D tilt card ── */
+    .project-card { transform-style: preserve-3d; perspective: 800px; }
+
+    /* ── Magnetic CTA ── */
+    .cta { will-change: transform; }
+
+    :root { --ease: cubic-bezier(0.16, 1, 0.3, 1); }
 
     @media (max-width: 900px) {
       .sidebar { display: none; }
@@ -370,145 +408,242 @@
 </main>
 
 
+<!-- Scroll progress + cursor glow -->
+<div id="progress-bar"></div>
+<div id="cursor-glow"></div>
+
 <!-- Floating code symbols -->
 <div class="floats" id="floats"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 <script>
-  // ── Floating background symbols ──────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════
+   Vanilla animation engine — no external dependencies
+   ═══════════════════════════════════════════════════════════════ */
+
+const ease = t => 1 - Math.pow(1 - t, 3); // easeOutCubic
+
+/* ── Minimal tween helper ───────────────────────────────────── */
+function tween(el, props, duration, delay = 0, onDone) {
+  setTimeout(() => {
+    const start = performance.now();
+    const from = {}, to = {};
+    for (const k in props) {
+      from[k] = props[k][0];
+      to[k]   = props[k][1];
+    }
+    function step(now) {
+      const p = Math.min((now - start) / duration, 1);
+      const e = ease(p);
+      const parts = [];
+      if ('opacity' in props) el.style.opacity = from.opacity + (to.opacity - from.opacity) * e;
+      if ('translateY' in props) parts.push(`translateY(${from.translateY + (to.translateY - from.translateY) * e}px)`);
+      if ('translateX' in props) parts.push(`translateX(${from.translateX + (to.translateX - from.translateX) * e}px)`);
+      if (parts.length) el.style.transform = parts.join(' ');
+      if (p < 1) requestAnimationFrame(step);
+      else onDone && onDone();
+    }
+    requestAnimationFrame(step);
+  }, delay);
+}
+
+function tweenAll(selector, props, duration, staggerMs = 0, baseDelay = 0) {
+  document.querySelectorAll(selector).forEach((el, i) => {
+    tween(el, props, duration, baseDelay + i * staggerMs);
+  });
+}
+
+/* ── Scroll progress bar ────────────────────────────────────── */
+const bar = document.getElementById('progress-bar');
+function updateProgress() {
+  const doc = document.documentElement;
+  const ratio = doc.scrollTop / (doc.scrollHeight - doc.clientHeight);
+  bar.style.transform = `scaleX(${ratio})`;
+}
+window.addEventListener('scroll', updateProgress, { passive: true });
+
+/* ── Cursor glow ────────────────────────────────────────────── */
+const glow = document.getElementById('cursor-glow');
+let glowActive = false;
+window.addEventListener('mousemove', e => {
+  glow.style.left = e.clientX + 'px';
+  glow.style.top  = e.clientY + 'px';
+  if (!glowActive) { glow.style.opacity = '1'; glowActive = true; }
+});
+window.addEventListener('mouseleave', () => { glow.style.opacity = '0'; glowActive = false; });
+
+/* ── Floating symbols — RAF sine-wave drift + mouse repel ───── */
+(function () {
   const syms = ['const','await','</>','{ }','fn()','[]','=>','async','AI','git','npm','dx','API','.map','null','true'];
   const floats = document.getElementById('floats');
   const symEls = [];
-  syms.forEach((s, i) => {
+  let mx = -9999, my = -9999;
+  const REPEL_RADIUS = 160, REPEL_STRENGTH = 110;
+
+  syms.forEach(s => {
     const el = document.createElement('div');
     el.className = 'float-sym';
     el.textContent = s;
-    // base position stored as data
-    const bx = 8 + Math.random() * 84;
-    const by = 5 + Math.random() * 90;
-    el.style.left = bx + '%';
-    el.style.top  = by + '%';
-    el._bx = bx; el._by = by;
-    el._tx = 0;  el._ty = 0;
+    el.style.left = (8 + Math.random() * 84) + '%';
+    el.style.top  = (5  + Math.random() * 90) + '%';
+    el.style.opacity = (0.06 + Math.random() * 0.14).toFixed(2);
+    el._rx = 0; el._ry = 0;                   // repel offset
+    el._phase  = Math.random() * Math.PI * 2;
+    el._ampX   = 8  + Math.random() * 14;
+    el._ampY   = 14 + Math.random() * 28;
+    el._speed  = 0.00025 + Math.random() * 0.00035;
     floats.appendChild(el);
     symEls.push(el);
-
-    // idle drift
-    anime({
-      targets: el,
-      translateY: [anime.random(-25, -50), anime.random(25, 50)],
-      translateX: [anime.random(-15, 15), anime.random(-15, 15)],
-      opacity:    [0.06, 0.22, 0.06],
-      duration:   anime.random(6000, 14000),
-      delay:      anime.random(0, 4000),
-      direction:  'alternate',
-      loop:       true,
-      easing:     'easeInOutSine',
-    });
   });
 
-  // Mouse repel
-  let mx = -9999, my = -9999;
   window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
   window.addEventListener('mouseleave', () => { mx = -9999; my = -9999; });
 
-  const REPEL_RADIUS = 160;
-  const REPEL_STRENGTH = 120;
-
-  setInterval(() => {
+  function tick() {
+    const t = Date.now();
     symEls.forEach(el => {
+      const driftX = Math.sin(t * el._speed + el._phase) * el._ampX;
+      const driftY = Math.cos(t * el._speed * 0.65 + el._phase) * el._ampY;
+
       const rect = el.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
       const cy = rect.top  + rect.height / 2;
-      const dx = cx - mx;
-      const dy = cy - my;
+      const dx = cx - mx, dy = cy - my;
       const dist = Math.sqrt(dx*dx + dy*dy);
-
       if (dist < REPEL_RADIUS && dist > 0) {
-        const force = (1 - dist / REPEL_RADIUS) * REPEL_STRENGTH;
-        el._tx += (dx / dist) * force;
-        el._ty += (dy / dist) * force;
+        const f = (1 - dist / REPEL_RADIUS) * REPEL_STRENGTH;
+        el._rx += (dx / dist) * f * 0.06;
+        el._ry += (dy / dist) * f * 0.06;
       }
-      // spring back
-      el._tx *= 0.88;
-      el._ty *= 0.88;
+      el._rx *= 0.88; el._ry *= 0.88;
 
-      el.style.transform = `translate(${el._tx.toFixed(1)}px, ${el._ty.toFixed(1)}px)`;
+      el.style.transform = `translate(${(driftX + el._rx).toFixed(1)}px, ${(driftY + el._ry).toFixed(1)}px)`;
     });
-  }, 16);
-
-  // ── Sidebar entrance ─────────────────────────────────────────────────
-  anime.timeline({ easing: 'easeOutExpo' })
-    .add({ targets: '.sidebar .name',    opacity: [0,1], translateY: [20,0], duration: 700 })
-    .add({ targets: '.sidebar .title',   opacity: [0,1], translateY: [12,0], duration: 500 }, '-=400')
-    .add({ targets: '.sidebar .tagline', opacity: [0,1], translateY: [12,0], duration: 500 }, '-=300')
-    .add({ targets: '.sidebar nav .nav-link', opacity: [0,1], translateX: [-16,0], duration: 400, delay: anime.stagger(80) }, '-=200')
-    .add({ targets: '.sidebar .socials', opacity: [0,1], translateY: [10,0], duration: 400 }, '-=100');
-
-  // ── Scroll-reveal for content blocks ─────────────────────────────────
-  function revealOnScroll(selector, props = {}) {
-    const els = document.querySelectorAll(selector);
-    if (!els.length) return;
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (!e.isIntersecting) return;
-        anime({ targets: e.target, opacity: [0,1], translateY: [props.y ?? 16, 0], translateX: [props.x ?? 0, 0], duration: 600, easing: 'easeOutExpo', delay: props.delay ?? 0 });
-        obs.unobserve(e.target);
-      });
-    }, { threshold: .1 });
-    els.forEach(el => obs.observe(el));
+    requestAnimationFrame(tick);
   }
+  tick();
+})();
 
-  revealOnScroll('.section-label', { y: 0, x: -12 });
-  revealOnScroll('.about-card');
-  document.querySelectorAll('.about-text').forEach((el, i) => {
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (!e.isIntersecting) return;
-        anime({ targets: e.target, opacity: [0,1], translateY: [12,0], duration: 500, easing: 'easeOutExpo', delay: i * 80 });
-        obs.unobserve(e.target);
-      });
-    }, { threshold: .1 });
-    obs.observe(el);
+/* ── Sidebar entrance ───────────────────────────────────────── */
+(function () {
+  const sidebar = document.querySelector('.sidebar');
+  const items = [
+    { sel: '.sidebar .name',    delay: 0   },
+    { sel: '.sidebar .title',   delay: 120 },
+    { sel: '.sidebar .tagline', delay: 220 },
+    { sel: '.sidebar .socials', delay: 600 },
+  ];
+  items.forEach(({ sel, delay }) => {
+    tween(document.querySelector(sel), { opacity:[0,1], translateY:[16,0] }, 650, delay);
   });
-  revealOnScroll('.skills-grid', { y: 16 });
-  revealOnScroll('.contact-grid', { y: 16 });
-  revealOnScroll('.cta-row', { y: 12 });
+  // nav links stagger
+  document.querySelectorAll('.sidebar nav .nav-link').forEach((el, i) => {
+    tween(el, { opacity:[0,1], translateX:[-16,0] }, 450, 320 + i * 80);
+  });
+})();
 
-  // ── Skill tags stagger ────────────────────────────────────────────────
-  const skillObs = new IntersectionObserver(entries => {
+/* ── Scroll-reveal helper ───────────────────────────────────── */
+function revealOnScroll(selector, { y = 16, x = 0, dur = 580, stagger = 0, threshold = 0.1 } = {}) {
+  const els = document.querySelectorAll(selector);
+  if (!els.length) return;
+  const obs = new IntersectionObserver(entries => {
     entries.forEach(e => {
       if (!e.isIntersecting) return;
-      anime({ targets: e.target.querySelectorAll('.tag'), opacity: [0,1], translateY: [8,0], duration: 350, delay: anime.stagger(40), easing: 'easeOutExpo' });
-      skillObs.unobserve(e.target);
+      tween(e.target, { opacity:[0,1], translateY:[y,0], translateX:[x,0] }, dur, stagger);
+      obs.unobserve(e.target);
     });
-  }, { threshold: .2 });
-  document.querySelectorAll('.skill-group').forEach(g => skillObs.observe(g));
+  }, { threshold });
+  els.forEach(el => obs.observe(el));
+}
 
-  // ── Project cards (keep existing visible class + add anime) ──────────
-  const cardObs2 = new IntersectionObserver(entries => {
-    entries.forEach((e, i) => {
-      if (!e.isIntersecting) return;
-      anime({ targets: e.target, opacity: [0,1], translateY: [28,0], duration: 600, easing: 'easeOutExpo' });
-      e.target.classList.add('visible');
-      cardObs2.unobserve(e.target);
-    });
-  }, { threshold: .08 });
-  document.querySelectorAll('.project-card').forEach(c => cardObs2.observe(c));
+revealOnScroll('.section-label', { y: 0, x: -12, dur: 500 });
+revealOnScroll('.about-card',    { y: 16 });
+revealOnScroll('.skills-grid',   { y: 16 });
+revealOnScroll('.contact-grid',  { y: 16 });
+revealOnScroll('.cta-row',       { y: 12 });
 
-  // ── Scroll-spy (existing) ─────────────────────────────────────────────
-  const sections = document.querySelectorAll('section[id]');
-  const navLinks  = document.querySelectorAll('.nav-link');
-  const spyObs   = new IntersectionObserver(entries => {
+document.querySelectorAll('.about-text').forEach((el, i) => {
+  const obs = new IntersectionObserver(entries => {
     entries.forEach(e => {
-      if (e.isIntersecting) {
-        navLinks.forEach(l => l.classList.remove('active'));
-        const a = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
-        if (a) a.classList.add('active');
-      }
+      if (!e.isIntersecting) return;
+      tween(e.target, { opacity:[0,1], translateY:[12,0] }, 500, i * 80);
+      obs.unobserve(e.target);
     });
-  }, { rootMargin: '-40% 0px -55% 0px' });
-  sections.forEach(s => spyObs.observe(s));
+  }, { threshold: 0.1 });
+  obs.observe(el);
+});
+
+/* ── Skill tags stagger ─────────────────────────────────────── */
+const skillObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    e.target.querySelectorAll('.tag').forEach((tag, i) => {
+      tween(tag, { opacity:[0,1], translateY:[8,0] }, 320, i * 45);
+    });
+    skillObs.unobserve(e.target);
+  });
+}, { threshold: 0.2 });
+document.querySelectorAll('.skill-group').forEach(g => {
+  g.querySelectorAll('.tag').forEach(t => { t.style.opacity = '0'; });
+  skillObs.observe(g);
+});
+
+/* ── Project cards ──────────────────────────────────────────── */
+const cardObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    tween(e.target, { opacity:[0,1], translateY:[28,0] }, 600);
+    e.target.classList.add('visible');
+    cardObs.unobserve(e.target);
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.project-card').forEach(c => cardObs.observe(c));
+
+/* ── 3D tilt on project cards ───────────────────────────────── */
+document.querySelectorAll('.project-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width  - 0.5;
+    const y = (e.clientY - r.top)  / r.height - 0.5;
+    card.style.transform = `rotateY(${x * 6}deg) rotateX(${-y * 5}deg) translateY(-3px)`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+    card.style.transition = 'transform 0.5s cubic-bezier(0.16,1,0.3,1), border-color .2s, box-shadow .2s';
+    setTimeout(() => card.style.transition = '', 500);
+  });
+  card.addEventListener('mouseenter', () => {
+    card.style.transition = 'border-color .2s, box-shadow .2s';
+  });
+});
+
+/* ── Magnetic CTA buttons ───────────────────────────────────── */
+document.querySelectorAll('.cta').forEach(btn => {
+  btn.addEventListener('mousemove', e => {
+    const r = btn.getBoundingClientRect();
+    const x = (e.clientX - r.left - r.width  / 2) * 0.25;
+    const y = (e.clientY - r.top  - r.height / 2) * 0.25;
+    btn.style.transform = `translate(${x}px, ${y}px)`;
+    btn.style.transition = 'transform 0.1s linear';
+  });
+  btn.addEventListener('mouseleave', () => {
+    btn.style.transform = '';
+    btn.style.transition = 'background .2s, transform .4s cubic-bezier(0.16,1,0.3,1)';
+  });
+});
+
+/* ── Scroll-spy ─────────────────────────────────────────────── */
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+const spyObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-40% 0px -55% 0px' });
+sections.forEach(s => spyObs.observe(s));
 </script>
 
 </body>
